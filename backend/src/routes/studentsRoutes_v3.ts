@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import { zStudentPostBody, zStudentId } from "../libs/zodValidators.js";
+import { zStudentPostBody, zStudentId, zStudentPutBody } from "../libs/zodValidators.js";
 
 import type { Student, CustomRequest } from "../libs/types.js";
 
@@ -10,6 +10,7 @@ import { checkRoles } from "../middlewares/checkRolesDBMiddleware.ts";
 
 // import database
 import { PrismaClient } from "../../generated/prisma/client.ts";
+import { success } from "zod";
 const prisma = new PrismaClient();
 
 const router = Router();
@@ -179,6 +180,73 @@ router.post(
         message: "Somthing is wrong, please try again",
         error: err,
       });
+    }
+  },
+);
+
+router.put(
+  "/",
+  authenticateToken,
+  async (req: CustomRequest, res: Response) => {
+    try {
+      // validate req.body
+      const result = zStudentPutBody.safeParse(req.body); // check zod
+      if (!result.success) {
+        return res.status(400).json({
+          success: false,
+          message: "Validation failed",
+          errors: result.error.issues[0]?.message,
+        });
+      }
+
+      const { studentId, firstName, lastName, program, interests, emails } =  result.data;
+
+      const currentUser = req.user;
+      const isAdmin = currentUser?.role === "ADMIN";
+      const isStudent = currentUser?.role === "STUDENT";
+      const isOwn = currentUser?.studentId === studentId;
+
+      if (!isAdmin || !isOwn) {
+        return res.status(403).json({
+          success: false,
+          message: "Forbidden"
+        })
+      }
+
+      //check if the studentId exists in DB
+      const student = await prisma.student.findUnique({
+        where: { studentId: result.data.studentId },
+      });
+      if (!student) {
+        return res.status(404).json({
+          success: false,
+          message: `Student ${studentId} does not exists`,
+        });
+      }
+
+      // update only fields that were sent (skip null/undefined)
+      const updated = await prisma.student.update({
+        where: { studentId },
+        data: {
+          ...(firstName != null && { firstName }),
+          ...(lastName != null && { lastName }),
+          ...(program != null && { program }),
+          ...(interests != null && { interests }),
+          ...(emails != null && { emails }),
+        },
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: `Student ${studentId} has been updated successfully`,
+        data: updated,
+      });
+    } catch (err) {
+      return res.status(500).json({
+        success: false,
+        message: "Somthing is wrong, please try again",
+        error: err
+      })
     }
   },
 );

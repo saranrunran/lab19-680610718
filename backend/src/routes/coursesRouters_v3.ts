@@ -166,7 +166,9 @@ router.put(
       const { courseId, courseTitle, instructors } = result.data;
 
       // check if the course exists
-      const course = await prisma.course.findUnique({ where: { courseId } });
+      const course = await prisma.course.findUnique({
+        where: { courseId } 
+      });
       if (!course) {
         return res.status(404).json({
           success: false,
