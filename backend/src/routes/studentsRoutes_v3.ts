@@ -251,4 +251,51 @@ router.put(
   },
 );
 
+router.delete(
+  "/",
+  authenticateToken,
+  checkRoleAdmin,
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const result = zStudentId.safeParse(req.body?.studentId);
+      if (!result.success) {
+        return res.status(400).json({
+          success: false,
+          message: "Validation failed",
+          errors: result.error.issues[0]?.message,
+        });
+      }
+      
+      const studentId = result.data;
+
+      const course = await prisma.student.findUnique({
+        where: { studentId } 
+      });
+      if (!course) {
+        return res.status(404).json({
+          success: false,
+          message: `Student ${studentId} does not exists`,
+        });
+      }
+
+      const [, deleted] = await prisma.$transaction([
+        prisma.enrollment.deleteMany({ where: { studentId } }),
+        prisma.student.delete({ where: { studentId } }),
+      ]);
+
+      return res.status(200).json({
+        success: true,
+        message: `Student ${studentId} has been deleted successfully`,
+        data: deleted,
+      });
+    } catch (err) {
+      return res.status(500).json({
+        success: false,
+        message: "Something is wrong, please try again",
+        error: err,
+      });
+    }
+  }
+)
+
 export default router;
