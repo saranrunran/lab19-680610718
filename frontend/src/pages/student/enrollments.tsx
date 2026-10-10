@@ -124,7 +124,14 @@ function ChangeCourseDialog({
             disabled={!newCourseId || submitting}
             onClick={handleUpdate}
           >
-            {submitting ? "กำลังบันทึก..." : "บันทึก"}
+            {submitting ? (
+              "กำลังบันทึก..."
+            ) : (
+              <>
+                <ArrowLeftRight className="mr-2 h-4 w-4" />
+                บันทึก
+              </>
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
