@@ -61,9 +61,9 @@ type EnrollmentStore = {
   /** POST /enrollments — throw ApiError ถ้า Backend ไม่รับ */
   enroll: (studentId: string, courseId: string) => Promise<void>;
   // TODO การบ้าน 2.3: action เปลี่ยนวิชา (PUT /enrollments) และยกเลิก (DELETE /enrollments)
-  updatedEnroll: (studentId: string, courseId: string, newCourseId: string) => Promise<void>;
+  updateEnrollment: (studentId: string, courseId: string, newCourseId: string) => Promise<void>;
 
-  removeEnroll: (studentId: string, courseId: string) => Promise<void>;
+  dropEnrollment: (studentId: string, courseId: string) => Promise<void>;
 };
 
 export const useEnrollmentStore = create<EnrollmentStore>()((set) => ({
@@ -182,7 +182,7 @@ export const useEnrollmentStore = create<EnrollmentStore>()((set) => ({
     }));
   },
 
-  updatedEnroll: async (studentId, courseId, newCourseId) => {
+  updateEnrollment: async (studentId, courseId, newCourseId) => {
     const updated = await api<ApiEnrollment>("/enrollments", {
       method: "PUT",
       body: { studentId, courseId, newCourseId },
@@ -196,7 +196,7 @@ export const useEnrollmentStore = create<EnrollmentStore>()((set) => ({
     }));
   },
 
-  removeEnroll: async (studentId, courseId) => {
+  dropEnrollment: async (studentId, courseId) => {
     await api("/enrollments", {
       method: "DELETE",
       body: { studentId, courseId},
