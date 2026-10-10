@@ -257,9 +257,9 @@ router.delete(
         });
       }
 
-      const [deleted] = await prisma.$transaction([
-        prisma.enrollment.deleteMany({ where: { studentId, courseId } }),
-      ]);
+      const deleted = await prisma.enrollment.deleteMany({
+        where: { studentId, courseId },
+      });
 
       return res.status(200).json({
         success: true,
