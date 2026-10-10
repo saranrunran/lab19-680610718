@@ -203,7 +203,6 @@ router.put(
 
       const currentUser = req.user;
       const isAdmin = currentUser?.role === "ADMIN";
-      const isStudent = currentUser?.role === "STUDENT";
       const isOwn = currentUser?.studentId === studentId;
 
       if (!isAdmin || !isOwn) {
@@ -268,10 +267,10 @@ router.delete(
       
       const studentId = result.data;
 
-      const course = await prisma.student.findUnique({
+      const student = await prisma.student.findUnique({
         where: { studentId } 
       });
-      if (!course) {
+      if (!student) {
         return res.status(404).json({
           success: false,
           message: `Student ${studentId} does not exists`,
